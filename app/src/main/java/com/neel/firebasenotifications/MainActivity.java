@@ -21,6 +21,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.neel.firebasenotifications.model.User;
 
+
+/**
+ * Firebase samples
+ */
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "FirebaseIDService";
     private FirebaseAnalytics mFirebaseAnalytics;

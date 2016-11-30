@@ -14,12 +14,16 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.crash.FirebaseCrash;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.neel.firebasenotifications.model.User;
+import com.neel.firebasenotifications.utilities.DateTimeFormatClass;
+
+import java.util.Date;
 
 
 /**
@@ -74,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         mFirebaseDatabase = mFirebaseInstance.getReference("users");
 
         // store app title to 'app_title' node
-        mFirebaseInstance.getReference("app_title").setValue("Realtime Databas");
+        mFirebaseInstance.getReference("app_title").setValue("Realtime Database");
 
         // app_title change listener
         mFirebaseInstance.getReference("app_title").addValueEventListener(new ValueEventListener() {
@@ -133,23 +137,27 @@ public class MainActivity extends AppCompatActivity {
                 mFirebaseDatabase.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        Log.e("Count ", "" + dataSnapshot.getChildrenCount());
+                        try {
+                            Log.e("Count ", "" + dataSnapshot.getChildrenCount());
 
-                        for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                            User post = postSnapshot.getValue(User.class);
-
-                            Log.e("Get Data", post.name);
-
-                            if (post.email.equals(email.getText().toString().trim())) {
-                                userId = postSnapshot.getKey();
-                                updateUser(name.getText().toString().trim(), email.getText().toString().trim());
-                                isExists = true;
-                                break;
+                            for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                                User post = postSnapshot.getValue(User.class);
+                                Log.e("Get Data", post.name);
+                                if (post.email.equals(email.getText().toString().trim())) {
+                                    userId = postSnapshot.getKey();
+                                    updateUser(name.getText().toString().trim(), email.getText().toString().trim());
+                                    isExists = true;
+                                    break;
+                                }
                             }
-                        }
 
-                        if (!isExists) {
-                            createUser(name.getText().toString().trim(), email.getText().toString().trim());
+                            if (!isExists) {
+                                createUser(name.getText().toString().trim(), email.getText().toString().trim());
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            FirebaseCrash.logcat(Log.ERROR, TAG, "NPE caught");
+                            FirebaseCrash.report(e);
                         }
                     }
 
@@ -221,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
         if (TextUtils.isEmpty(userId)) {
             userId = mFirebaseDatabase.push().getKey();
         }
-        User user = new User(name, email);
+        User user = new User(name, email, DateTimeFormatClass.convertDateObjectToMMDDYYYFormat(new Date()));
         mFirebaseDatabase.child(userId).setValue(user);
     }
 
@@ -266,8 +274,10 @@ public class MainActivity extends AppCompatActivity {
         if (!TextUtils.isEmpty(name))
             mFirebaseDatabase.child(userId).child("name").setValue(name);
 
-        if (!TextUtils.isEmpty(email))
+        if (!TextUtils.isEmpty(email)) {
             mFirebaseDatabase.child(userId).child("email").setValue(email);
+            mFirebaseDatabase.child(userId).child("currentDate").setValue(DateTimeFormatClass.convertDateObjectToMMDDYYYFormat(new Date()));
+        }
         isExists = false;
     }
 }

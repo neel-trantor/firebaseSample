@@ -21,6 +21,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.neel.firebasenotifications.model.User;
+import com.neel.firebasenotifications.utilities.DateTimeFormatClass;
+
+import java.util.Date;
 
 
 /**
@@ -75,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         mFirebaseDatabase = mFirebaseInstance.getReference("users");
 
         // store app title to 'app_title' node
-        mFirebaseInstance.getReference("app_title").setValue("Realtime Databas");
+        mFirebaseInstance.getReference("app_title").setValue("Realtime Database");
 
         // app_title change listener
         mFirebaseInstance.getReference("app_title").addValueEventListener(new ValueEventListener() {
@@ -226,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
         if (TextUtils.isEmpty(userId)) {
             userId = mFirebaseDatabase.push().getKey();
         }
-        User user = new User(name, email);
+        User user = new User(name, email, DateTimeFormatClass.convertDateObjectToMMDDYYYFormat(new Date()));
         mFirebaseDatabase.child(userId).setValue(user);
     }
 
@@ -271,8 +274,10 @@ public class MainActivity extends AppCompatActivity {
         if (!TextUtils.isEmpty(name))
             mFirebaseDatabase.child(userId).child("name").setValue(name);
 
-        if (!TextUtils.isEmpty(email))
+        if (!TextUtils.isEmpty(email)) {
             mFirebaseDatabase.child(userId).child("email").setValue(email);
+            mFirebaseDatabase.child(userId).child("currentDate").setValue(DateTimeFormatClass.convertDateObjectToMMDDYYYFormat(new Date()));
+        }
         isExists = false;
     }
 }
